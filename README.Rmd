@@ -5,11 +5,13 @@ title: |
   | ou Alugar?
 author: "Felipe"
 date: "2020/09/13"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 ##### Utilizaremos os dados da tabela FIPE de veículos.
 #####A Fundação Instituto de Pesquisas Econômicas - FIPE é um órgão de apoio institucional ao Departamento de Economia da Faculdade de Economia, Administração e Contabilidade (FEA) da Universidade de São Paulo (USP). \n Um dos índices mais conhecidos e usados no Brasil é a Tabela FIPE Veículos que é atualizada todos os meses com o valor médio de venda de veículos. [Wikipedia]
+
+###Objetivo: Entender o custo mensal de um automóvel, o quão mais vantajoso e mais barato é comprar um semi-novo/usado e comparar com custo de aluguel de carros.
 
 ## Carregando Bibliotecas
 ```{r setup,warning=FALSE,message=FALSE}
@@ -25,7 +27,7 @@ library(DataExplorer)
 ### Carregando Dados
 ```{r,warning=FALSE,message=FALSE}
 data_vehicules <-
-  readr::read_rds("../data/2020_09_fipe_top_veiculos.rds")
+  readr::read_rds("data/2020_09_fipe_top_veiculos.rds")
 
 
 ```
