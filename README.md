@@ -9,6 +9,12 @@ Felipe
 
 ##### A Fundação Instituto de Pesquisas Econômicas - FIPE é um órgão de apoio institucional ao Departamento de Economia da Faculdade de Economia, Administração e Contabilidade (FEA) da Universidade de São Paulo (USP). Um dos índices mais conhecidos e usados no Brasil é a Tabela FIPE Veículos que é atualizada todos os meses com o valor médio de venda de veículos. \[Wikipedia\]
 
+#### Objetivo: Entender o custo mensal de um automóvel (carros abaixo 55mil novos), o quão mais vantajoso e mais barato é comprar um semi-novo/usado e comparar com custo de aluguel de carros.
+
+### ShinyApp Construido
+
+[Clique Aqui](https://felipelbhering.shinyapps.io/201908-cursor4ds2-entrega-final/?_ga=2.9124017.585984912.1600133237-412420558.1600133237)
+
 Carregando Bibliotecas
 ----------------------
 
@@ -27,21 +33,27 @@ library(DataExplorer)
 ``` r
 data_vehicules <-
   readr::read_rds("data/2020_09_fipe_top_veiculos.rds")
+
+data_vehicules %>% head() %>% data.frame()
 ```
+
+    ##                          model   make year       date price
+    ## 1   ETIOS 1.3 Flex 16V 5p Mec. Toyota 2014 2020-09-01 29517
+    ## 2 ETIOS X 1.3 Flex 16V 5p Mec. Toyota 0 km 2020-09-01 52710
+    ## 3 ETIOS X 1.3 Flex 16V 5p Mec. Toyota 2014 2020-09-01 28978
+    ## 4 ETIOS X 1.3 Flex 16V 5p Mec. Toyota 2015 2020-09-01 31007
+    ## 5 ETIOS X 1.3 Flex 16V 5p Mec. Toyota 2016 2020-09-01 32560
+    ## 6 ETIOS X 1.3 Flex 16V 5p Mec. Toyota 2017 2020-09-01 34372
 
 ### Filtrando modelos que tem valor de 0km e são abaixo 55mil reais
 
 ``` r
+#filtrando carros que ainda produzem (tem 0km) e abaixo 55mil
 modelos_abaixo_55 <- 
   data_vehicules %>% 
   filter(year=="0 km") %>% 
-  filter(price<55000) %>% 
+  filter(price < 55000) %>% 
   pull(model)
-
-
-#modelos_tem_0km <- 
- # data_vehicules %>% filter(year=="0 km") %>% pull(model)
-
 
 data_vehicules <- data_vehicules %>% 
                     filter((model %in% modelos_abaixo_55)) %>%
@@ -70,13 +82,15 @@ glimpse(data_vehicules )
     ## $ date  <date> 2020-09-01, 2020-09-01, 2020-09-01, 2020-09-01, 2020-09-01, ...
     ## $ price <dbl> 52710, 28978, 31007, 32560, 34372, 36353, 38913, 49547, 31013...
 
+#### Não tem dados Missing
+
 ``` r
 plot_missing(data_vehicules, title="No Missing Data")
 ```
 
 ![](README_files/figure-markdown_github/missing-1.png)
 
-#### Carros mais baratos do Brasil hoje
+#### Carros mais baratos do Brasil hoje (0 km)
 
 ``` r
 data_vehicules %>% filter(year=="0 km") %>% 
@@ -99,7 +113,7 @@ data_vehicules %>% filter(year=="0 km") %>%
     ## 10 530 TALENT 1.5 16V 103cv 4p         LIFAN   43245
     ## # ... with 30 more rows
 
-#### Carros com 7 anos histórico
+#### Carros com 7 anos histórico (apenas 4)
 
 ``` r
 #Carros com dados de todos anos
@@ -122,17 +136,10 @@ carros_completos7
     ## 3 ONIX HATCH LT 1.0 8V FlexPower 5p Mec.     7
     ## 4 ONIX HATCH LT 1.4 8V FlexPower 5p Mec.     7
 
-#### Filtrnado carro com pelo menos 0km +2019
+#### Carros com 7 anos histórico (apenas 10)
 
 ``` r
-data_vehicules <- 
-  data_vehicules %>%
-  filter(model %in% (carros_completos %>% filter(n>1) %>% pull(model)))
-```
-
-#### Carros com 5 anos histórico
-
-``` r
+#mostrando carros com dados de 5 anos
 carros_completos5 <- carros_completos %>%
   filter(n>=5)
 carros_completos5
@@ -152,6 +159,14 @@ carros_completos5
     ##  8 QQ 1.0  ACT FL 12V/1.0 12V Flex  5p        6
     ##  9 QQ 1.0 Look FL 12V/1.0 12V Flex 5p         6
     ## 10 530 TALENT 1.5 16V 103cv 4p                5
+
+#### Filtrando carro com pelo menos 0km +2019 (2 dados)
+
+``` r
+data_vehicules <- 
+  data_vehicules %>%
+  filter(model %in% (carros_completos %>% filter(n>1) %>% pull(model)))
+```
 
 ``` r
 #Função calcula variacao apos x anos uso
@@ -186,7 +201,11 @@ variacao_ano <- function(df,df_completo , n_lag =1){
   }
 ```
 
-### Variação Preço Carro Após 1 Anos Compra (n=4)
+#### Variação Preço Carro Após 1 Anos Compra (n=4 carros)
+
+#### Carro é muito desvalorizado ao comprar 0km e ficar 1 ano com ele
+
+#### podendo chegar a 20% a desvalorização após 1 ano
 
 ``` r
 variacao_ano(data_vehicules,carros_completos7, 1) %>% 
@@ -238,28 +257,25 @@ variacao_ano(data_vehicules,carros_completos5 ,1) %>%
 
 ![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
+#### Carros tem custos, consideramos
+
+#### 1)Custo oportunidade do dinheiro que poderia ser investido
+
+#### Considerando Selic 2% e 15% Imposto Renda
+
+#### 2)custo seguro em geral 0.065 até 0.08, considerando 7% na média
+
+#### 3)ipva dpvat. Normalmente, para carros, ela é de 2% a 4% IPVA utilizei Carros movidos a gasolina e biocombustíveis 4%
+
+#### 5)manuntencao 0.01 1o ano \#0.02 2o ano \#0.03 3o e 4o ano.
+
+#### Após 60mil km o custo pode ser maior, por isso consideramos carros até 5 anos.
+
+#### 6)considerando uso até 1500km/mes
+
+#### 7)Outras possibilidades. Financiamento 20% entrada e 19.46% (media brasil ano) de juros anual.
+
 ``` r
-###Box Plot Variação Preço Carro Após 1 Ano Compra
-# variacao_ano(data_vehicules, carros_completos,1) %>% 
- # ggplot(aes(x=year, y=pct_change)) +
-  #geom_boxplot() +
-  #labs(title= "Redução do Preço do Carro após 1 Ano",
-      # y="Variação do Preço do Carro após 1 ano", 
-       #x="Ano Carro") #+ 
-  #theme(axis.text.x = element_text(angle = 30))
-```
-
-### Considerando Selic 2% e 15% Impostos
-
-``` r
-####Considerando Selic 2% e 15% Impostos
-#IPVA utilizei Carros movidos a gasolina e biocombustíveis 4%
-#custo seguro 0.065 até 0.08
-#ipva dpvat ver por estado . Normalmente, para carros, ela é de 2% a 4%
-#financiamento 20% entrada e 19.46% (media brasil ano)
-#manuntencao 0.01 1o ano #0.02 2o ano #0.03 3o e 4o ano
-#considerando uso até 1500km/mes
-
 taxa_ipva = 0.04
 taxa_selic =0.02
 
@@ -298,53 +314,7 @@ custos_carro <- variacao_ano(data_vehicules, carros_completos, 1) %>%
            custo_carro_mes )
           
   ) 
-```
 
-    ## Warning: Unknown levels in `f`: N_3
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_2, N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_2, N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_2, N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_2, N_3
-
-    ## Warning: Unknown levels in `f`: N_3, N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_4, N_5
-
-    ## Warning: Unknown levels in `f`: N_4, N_5
-
-``` r
 #filtrar 1.0 ou custo novo <50mil e fazer mediana custo_mensal
 #pegar comparar com 869,949 do unidas livre/mes
 custos_carro %>% select(model, year, custo_carro_mes )
@@ -372,17 +342,55 @@ custos_carro %>% select(model, year, custo_carro_mes )
  # ) %>% 
  # mutate(custo_usado_financiado =)
 
-#aluguel popular faixa 0.023 / mes
-#kwid 40mil 38000 - > 0.023 879/38000 
-#gol mpi 47mil e 949 -> 0.02  949/47000
-#polo mpi 49000 1189/49000 0.024
+#aluguel popular faixa 
+#kwid  879
+#gol mpi 949
+#polo mpi 1189
 ```
 
 ### Qual carro sofre mais desvalorização (%) no 1o ano &lt;55mil
 
-#### Verificamos que comprar carro novo tem um custo alto de redução após 1 ano. Certamente, você tem menos risco do carro ter problemas sendo o único e primeiro usuário, mas como negócio vale a pena comprar carro usado (nem que seja 1 ano ou menos) do que novo, sempre verificando o estado atual do carro e se foi feita as revisões.
+``` r
+custos_carro %>% 
+    filter(year == "Comprou Novo") %>% 
+    arrange(pct_change) %>% 
+    select(model, make, year, price, pct_change)
+```
+
+    ## # A tibble: 31 x 5
+    ## # Groups:   model [31]
+    ##    model                              make          year        price pct_change
+    ##    <chr>                              <chr>         <fct>       <dbl>      <dbl>
+    ##  1 UNO DRIVE 1.0 Flex 6V 5p           Fiat          Comprou No~ 48143      -28.2
+    ##  2 UNO WAY 1.3 Flex 8V 5p             Fiat          Comprou No~ 53871      -27.9
+    ##  3 SANDERO GT line Flex 1.0 12V 5p    Renault       Comprou No~ 54418      -27.6
+    ##  4 ETIOS X 1.3 Flex 16V 5p Mec.       Toyota        Comprou No~ 52710      -26.2
+    ##  5 Gol 1.0 Flex 12V 5p                VW - VolksWa~ Comprou No~ 48542      -25.1
+    ##  6 Ka+ Sedan 1.0 SE/SE PLUS TiVCT Fl~ Ford          Comprou No~ 53404      -24.1
+    ##  7 Ka 1.0 SE/SE Plus TiVCT Flex 5p    Ford          Comprou No~ 49547      -23.1
+    ##  8 ARGO DRIVE 1.0 6V Flex             Fiat          Comprou No~ 52813      -22.7
+    ##  9 UNO ATTRACTIVE 1.0 Fire Flex 8V 5p Fiat          Comprou No~ 44485      -22.7
+    ## 10 UNO WAY 1.0 Flex 6V 5p             Fiat          Comprou No~ 50445      -21.2
+    ## # ... with 21 more rows
 
 ``` r
-#to do pegar qtdade carros vendidos
-#http://www.fenabrave.org.br/portal/files/2020_08_2.pdf
+    head(5)
 ```
+
+    ## [1] 5
+
+### ShinyApp Construido
+
+### Saiba o custo mensal do seu carro
+
+[Clique Aqui](https://felipelbhering.shinyapps.io/201908-cursor4ds2-entrega-final/?_ga=2.9124017.585984912.1600133237-412420558.1600133237)
+
+#### Resultado:: Verificamos que comprar carro novo tem um custo alto de redução após 1 ano. Certamente, você tem menos risco do carro ter problemas sendo o único e primeiro usuário, mas como negócio vale a pena comprar carro usado (nem que seja 1 ano ou menos) do que novo, sempre verificando o estado atual do carro e se foi feita as revisões.
+
+### Ao mesmo tempo, carros de valores abaixo 40mil tem aluguel de cerca de 900 e 1000 reais, abaixo do valor de gasto de um carro novo, porém acima do valor de usados. Financeiramente, a melhor compra de carros com pelo menos um ano de usado.
+
+#### Próximos Passos
+
+#### 1) to do pegar qtdade carros vendidos
+
+#### <http://www.fenabrave.org.br/portal/files/2020_08_2.pdf>
